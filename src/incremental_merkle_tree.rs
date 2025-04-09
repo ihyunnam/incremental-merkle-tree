@@ -114,14 +114,14 @@ impl MerkleTree
             .first()
     }
 
-    pub fn opening(&self, mut leaf_index: usize) -> Vec<&Hash> {
+    pub fn opening(&self, mut leaf_index: usize) -> Vec<Hash> {
         let mut opening = Vec::new();
         // Iterate over all level until the root
         for level in self.tree.split_last().unwrap().1.iter() {
             if leaf_index % 2 != 0 {
-                opening.push(level.get(leaf_index - 1).unwrap());
+                opening.push(*level.get(leaf_index - 1).unwrap());
             } else {
-                opening.push(level.get(leaf_index + 1).unwrap());
+                opening.push(*level.get(leaf_index + 1).unwrap());
             }
             leaf_index /= 2;
         }
