@@ -10,7 +10,7 @@ pub struct MerkleTree
 //     T: Hasher,
 {
     // hasher: H,
-    tree: Vec<Vec<Hash>>,
+    pub tree: Vec<Vec<Hash>>,
     leaves_count: usize,
 }
 
