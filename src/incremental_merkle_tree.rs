@@ -4,7 +4,7 @@ use ark_bn254::Fr;
 use crate::poseidon::PoseidonAlgorithm;
 pub type Hash = Fr;
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct MerkleTree
 // where
 //     T: Hasher,
