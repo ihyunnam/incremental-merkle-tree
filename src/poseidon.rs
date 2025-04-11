@@ -31,19 +31,7 @@ impl Hasher for PoseidonAlgorithm {
     // }
     // fn hash(data: &[u8]) -> [u8;32] {
     fn hash<const N: usize>(data: [Fr;N]) -> Self::Hash {
-        // Poseidon2::hash_internal(data, message_size, (message_size as usize) != N)
-        // let data_fr = Fr::from_be_bytes_mod_order(data);
-        // let hash_fr = Poseidon2::hash_internal(data, 2, false);
-        // TODO: check message_len = input size thing (false for now)
-        // let hash_vec = hash_fr.into_bigint().to_bytes_be();
-        // if hash_vec.len() != 32 {
-        //     println!("Error: hash vector length {:?}", hash_vec.len());
-        // }
-    
-        // let mut array = [0u8; 32];
-        // array.copy_from_slice(&hash_vec);
-        // array
-        Poseidon2::hash_internal(data, 2, false)
+        Poseidon2::hash_internal(data, N as u32, false)
     }
 
     fn concat_and_hash(left: &Fr, right: &Fr) -> Fr {
