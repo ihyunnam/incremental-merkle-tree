@@ -53,15 +53,28 @@ impl MerkleTree
         Self::build_tree(&mut self.tree, self.leaves_count);
     }
 
+    fn build_empty_tree(depth: u32) -> MerkleTree {
+        // let min_num_leaves: usize = (1usize << (depth - 2)) + 1;
+        let mut tree = MerkleTree::new();
+        for level in 0..depth {
+            let num_leaves = 1usize << (depth-level-1);
+            let row = vec![Fr::zero(); num_leaves];
+            tree.push(row)
+        }
+        tree.leaves_count = 1usize << (depth-1);
+        tree
+    }
+
     fn build_tree(tree: &mut Vec<Vec<Hash>>, leaves_count: usize) {
         tree.drain(1..);
         let mut idx = 0;
-        // If there are odd number of leaves (except 1), duplicate the last leaf.
+        // If there are odd number of leaves (except 1), append a zero node.
+        // (original behavior was to duplicate the last leaf)
         // It makes it easier to compute the merkle proof of the last leaf in a tree with odd number of leaves
         // NOTE: This does NOT affect the tree when inserting a new leaf as the duplicated leaf is removed before a new leaf is inserted
         if leaves_count > 1 && leaves_count % 2 != 0 {
-            let last = tree.get(0).unwrap().last().unwrap().clone();
-            tree.get_mut(0).unwrap().push(last);
+            // let last = tree.get(0).unwrap().last().unwrap().clone();
+            tree.get_mut(0).unwrap().push(Fr::zero());
         }
 
         loop {
@@ -83,8 +96,8 @@ impl MerkleTree
             }
 
             if row.len() > 1 && row.len() % 2 != 0 {
-                let last = row.last().unwrap().clone();
-                row.push(last);
+                // let last = row.last().unwrap().clone();
+                row.push(Fr::zero());
             }
             tree.push(row);
             // Move to the next level
