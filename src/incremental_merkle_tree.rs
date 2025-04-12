@@ -39,44 +39,79 @@ impl MerkleTree
         // The leaf node should not be empty
         // assert!(!leaf.is_empty());
         // increment the leaf count by 1
-        if self.tree.is_empty() {
-            // self.tree.push(vec![PoseidonAlgorithm::leaf_hash(leaf)]);
-            self.tree.push(vec![PoseidonAlgorithm::hash(leaf)]);
-            self.leaves_count += 1;
-        } else {
+        
+        
+        // if self.tree.is_empty() {
+        //     // self.tree.push(vec![PoseidonAlgorithm::leaf_hash(leaf)]);
+        //     self.tree.push(vec![PoseidonAlgorithm::hash(leaf)]);
+        //     self.leaves_count += 1;
+        // } else {
             let leaves = self.tree.first_mut().unwrap();
             // drop the duplicate leaf if present
-            leaves.drain(self.leaves_count..);
+            // leaves.drain(self.leaves_count..);  // Remove all placeholder zero nodes
             // leaves.push(T::leaf_hash(leaf));
-            leaves.push(PoseidonAlgorithm::hash(leaf));
+            // leaves.push(PoseidonAlgorithm::hash(leaf));
+            leaves[self.leaves_count] = PoseidonAlgorithm::hash(leaf);  // Instead of draining zero nodes and pushing new, replace a zero node with the new leaf.
             self.leaves_count += 1;
-        }
+        // }
         Self::build_tree(&mut self.tree, self.leaves_count);
     }
 
     pub fn build_empty_tree(depth: u32) -> MerkleTree {
-        // let min_num_leaves: usize = (1usize << (depth - 2)) + 1;
         let mut tree = MerkleTree::new();
-        for level in 0..depth {
-            let num_leaves = 1usize << (depth-level-1);
-            let row = vec![Fr::zero(); num_leaves];
-            tree.tree.push(row)
+    
+        // Start from the bottom layer (leaves)
+        let num_leaves = 1usize << (depth - 1);
+        // let empty_leaf = PoseidonAlgorithm::hash([Fr::zero(), Fr::zero()]);
+        let mut current_level = vec![Fr::zero(); num_leaves];
+    
+        // Push each level from leaves to root
+        for _ in 0..depth {
+            tree.tree.push(current_level.clone());
+    
+            // Build the next level up
+            let mut next_level = Vec::with_capacity(current_level.len() / 2);
+            for pair in current_level.chunks(2) {
+                let h = if pair.len() == 2 {
+                    PoseidonAlgorithm::hash([pair[0], pair[1]])
+                } else {
+                    // handle odd node (pad with zero)
+                    PoseidonAlgorithm::hash([pair[0], Fr::zero()])
+                };
+                next_level.push(h);
+            }
+    
+            current_level = next_level;
         }
-        tree.leaves_count = 1usize << (depth-1);
+    
+        tree.leaves_count = 0;  // Note: leaves_count is for real leaves that are actually inserted (log tree roots)
         tree
     }
 
+    // pub fn build_empty_tree(depth: u32) -> MerkleTree {
+    //     // let min_num_leaves: usize = (1usize << (depth - 2)) + 1;
+    //     let mut tree = MerkleTree::new();
+    //     for level in 0..depth {
+    //         let num_leaves = 1usize << (depth-level-1);
+    //         let row = vec![Fr::zero(); num_leaves];
+    //         tree.tree.push(row)
+    //     }
+    //     tree.leaves_count = 1usize << (depth-1);
+    //     tree
+    // }
+
     fn build_tree(tree: &mut Vec<Vec<Hash>>, leaves_count: usize) {
-        tree.drain(1..);
+        tree.drain(1..);    // Remove all upper levels because they'll be rebuilt from new leaves.
         let mut idx = 0;
         // If there are odd number of leaves (except 1), append a zero node.
         // (original behavior was to duplicate the last leaf)
         // It makes it easier to compute the merkle proof of the last leaf in a tree with odd number of leaves
         // NOTE: This does NOT affect the tree when inserting a new leaf as the duplicated leaf is removed before a new leaf is inserted
-        if leaves_count > 1 && leaves_count % 2 != 0 {
-            // let last = tree.get(0).unwrap().last().unwrap().clone();
-            tree.get_mut(0).unwrap().push(Fr::zero());
-        }
+        
+        // if leaves_count > 1 && leaves_count % 2 != 0 {
+        //     // let last = tree.get(0).unwrap().last().unwrap().clone();
+        //     tree.get_mut(0).unwrap().push(Fr::zero());
+        // }    // Note: all leaves have placeholders
 
         loop {
             // Keep looping until you reach a level with a single node
@@ -96,10 +131,11 @@ impl MerkleTree
                 i += 2;
             }
 
-            if row.len() > 1 && row.len() % 2 != 0 {
-                // let last = row.last().unwrap().clone();
-                row.push(Fr::zero());
-            }
+            // Note: all leaves have placeholders
+            // if row.len() > 1 && row.len() % 2 != 0 {
+            //     // let last = row.last().unwrap().clone();
+            //     row.push(Fr::zero());
+            // }
             tree.push(row);
             // Move to the next level
             idx += 1;
