@@ -53,7 +53,7 @@ impl MerkleTree
         Self::build_tree(&mut self.tree, self.leaves_count);
     }
 
-    fn build_empty_tree(depth: u32) -> MerkleTree {
+    pub fn build_empty_tree(depth: u32) -> MerkleTree {
         // let min_num_leaves: usize = (1usize << (depth - 2)) + 1;
         let mut tree = MerkleTree::new();
         for level in 0..depth {
