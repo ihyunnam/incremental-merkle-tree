@@ -60,7 +60,7 @@ impl MerkleTree
         for level in 0..depth {
             let num_leaves = 1usize << (depth-level-1);
             let row = vec![Fr::zero(); num_leaves];
-            tree.push(row)
+            tree.tree.push(row)
         }
         tree.leaves_count = 1usize << (depth-1);
         tree
