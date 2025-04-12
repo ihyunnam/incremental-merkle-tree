@@ -1,6 +1,7 @@
 use crate::hasher::Hasher;
 // use sha2::{Digest, Sha256};
 use ark_bn254::Fr;
+use ark_ff::Zero;
 use crate::poseidon::PoseidonAlgorithm;
 pub type Hash = Fr;
 
