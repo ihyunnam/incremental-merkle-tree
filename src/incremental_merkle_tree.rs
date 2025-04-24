@@ -13,6 +13,7 @@ pub struct MerkleTree
     // hasher: H,
     pub tree: Vec<Vec<Hash>>,
     leaves_count: usize,
+    empty_hashes: Vec<Hash>,
 }
 
 // impl<T> Default for MerkleTree<T>
@@ -32,6 +33,7 @@ impl MerkleTree
         Self {
             tree: Vec::new(),
             leaves_count: 0,
+            empty_hashes: Vec::new(),
         }
     }
 
@@ -68,7 +70,8 @@ impl MerkleTree
         // Push each level from leaves to root
         for _ in 0..depth {
             tree.tree.push(current_level.clone());
-    
+            tree.empty_hashes.push(current_level[0]);   // Save empty node at each level
+
             // Build the next level up
             let mut next_level = Vec::with_capacity(current_level.len() / 2);
             for pair in current_level.chunks(2) {
@@ -164,19 +167,47 @@ impl MerkleTree
             .first()
     }
 
-    pub fn opening(&self, mut leaf_index: usize) -> Vec<Hash> {
-        let mut opening = Vec::new();
-        // Iterate over all level until the root
+    // pub fn opening(&self, mut leaf_index: usize) -> Vec<Hash> {
+    //     let mut opening = Vec::new();
+    //     // Iterate over all level until the root
+    //     for level in self.tree.split_last().unwrap().1.iter() {
+    //         if leaf_index % 2 != 0 {
+    //             opening.push(*level.get(leaf_index - 1).unwrap());
+    //         } else {
+    //             opening.push(*level.get(leaf_index + 1).unwrap());
+    //         }
+    //         leaf_index /= 2;
+    //     }
+    //     opening
+    // }
+
+    pub fn opening(&self, leaf_index: u32) -> Vec<(Hash, Hash)> {
+        let mut path = Vec::new();
+        // let tree_index = convert_index_to_last_level(index, N); // Note: It's given index = Binary(h_i)
+
+        // Iterate from the leaf up to the root, storing all intermediate hash values.
+        let mut current_node = leaf_index;
+        let mut level_count = 0;
+        // while !is_root(current_node) {
         for level in self.tree.split_last().unwrap().1.iter() {
-            if leaf_index % 2 != 0 {
-                opening.push(*level.get(leaf_index - 1).unwrap());
+            let sibling_node = sibling(current_node).unwrap();
+            let empty_hash = &self.empty_hashes[level_count];
+            let current = level.get(current_node as usize).cloned().unwrap_or(*empty_hash);
+            let sibling = level.get(sibling_node as usize).cloned().unwrap_or(*empty_hash);
+            if is_left_child(current_node) {
+                // path[level] = (current, sibling);
+                path.push((current, sibling));
             } else {
-                opening.push(*level.get(leaf_index + 1).unwrap());
+                // path[level] = (sibling, current);
+                path.push((sibling, current));
             }
-            leaf_index /= 2;
+            current_node = parent(current_node).unwrap();
+            level_count += 1;
         }
-        opening
+
+        path
     }
+    
 
     pub fn verify(&self, proof: Vec<&Hash>, mut leaf_index: usize) -> bool {
         let mut prev: ark_ff::Fp<ark_ff::MontBackend<ark_bn254::FrConfig, 4>, 4>= self.tree.first().unwrap().get(leaf_index).unwrap().clone();
@@ -189,6 +220,31 @@ impl MerkleTree
             leaf_index /= 2;
         }
         prev == self.tree.last().unwrap().first().unwrap().clone()
+    }
+}
+
+// Returns true iff the given index represents a left child.
+fn is_left_child(index: u32) -> bool {
+    index % 2 == 0
+}
+
+// Returns the index of the sibling, given an index.
+fn sibling(index: u32) -> Option<u32> {
+    // if index == 0 {  // Note: Path doesn't contain the root
+    //     None
+    if is_left_child(index) {
+        Some(index + 1)
+    } else {
+        Some(index - 1)
+    }
+}
+
+// Given index, return parent index.
+fn parent (index: u32) -> Option<u32> {
+    if index > 0 {
+        Some(index >> 1)  // Note: path doesn't contain leaf
+    } else {
+        Some(0)
     }
 }
 
