@@ -177,11 +177,11 @@ impl MerkleTree
         for level in self.tree.split_last().unwrap().1.iter() {
             println!("level {:?}", level_count);
             let sibling_node = sibling(current_node).unwrap();
-            let empty_hash = &self.empty_hashes[level_count];
+            // let empty_hash = &self.empty_hashes[level_count];
             println!("current node {:?}", current_node);
-            let current = level.get(current_node as usize).cloned().unwrap_or(*empty_hash);
+            let current = level.get(current_node as usize).cloned().expect("Expected current node to exist.");
             println!("current {:?}", current);
-            let sibling = level.get(sibling_node as usize).cloned().unwrap_or(*empty_hash);
+            let sibling = level.get(sibling_node as usize).cloned().expect("Expected sibling node to exist.");
             println!("sibling {:?}", sibling);
             if is_left_child(current_node) {
                 // path[level] = (current, sibling);
