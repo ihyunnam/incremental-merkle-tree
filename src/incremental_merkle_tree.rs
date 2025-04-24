@@ -152,19 +152,19 @@ impl MerkleTree
             .first()
     }
 
-    // pub fn opening(&self, mut leaf_index: usize) -> Vec<Hash> {
-    //     let mut opening = Vec::new();
-    //     // Iterate over all level until the root
-    //     for level in self.tree.split_last().unwrap().1.iter() {
-    //         if leaf_index % 2 != 0 {
-    //             opening.push(*level.get(leaf_index - 1).unwrap());
-    //         } else {
-    //             opening.push(*level.get(leaf_index + 1).unwrap());
-    //         }
-    //         leaf_index /= 2;
-    //     }
-    //     opening
-    // }
+    pub fn opening_orig(&self, mut leaf_index: usize) -> Vec<Hash> {
+        let mut opening = Vec::new();
+        // Iterate over all level until the root
+        for level in self.tree.split_last().unwrap().1.iter() {
+            if leaf_index % 2 != 0 {
+                opening.push(*level.get(leaf_index - 1).unwrap());
+            } else {
+                opening.push(*level.get(leaf_index + 1).unwrap());
+            }
+            leaf_index /= 2;
+        }
+        opening
+    }
 
     pub fn opening(&self, leaf_index: u32) -> Vec<(Hash, Hash)> {
         let mut path = Vec::new();
