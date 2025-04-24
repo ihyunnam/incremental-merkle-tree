@@ -172,17 +172,17 @@ impl MerkleTree
 
         // Iterate from the leaf up to the root, storing all intermediate hash values.
         let mut current_node = leaf_index;
-        let mut level_count = 0;
+        // let mut level_count = 0;
         // while !is_root(current_node) {
         for level in self.tree.split_last().unwrap().1.iter() {
-            println!("level {:?}", level_count);
+            // println!("level {:?}", level_count);
             let sibling_node = sibling(current_node).unwrap();
             // let empty_hash = &self.empty_hashes[level_count];
-            println!("current node {:?}", current_node);
+            // println!("current node {:?}", current_node);
             let current = level.get(current_node as usize).cloned().expect("Expected current node to exist.");
-            println!("current {:?}", current);
+            // println!("current {:?}", current);
             let sibling = level.get(sibling_node as usize).cloned().expect("Expected sibling node to exist.");
-            println!("sibling {:?}", sibling);
+            // println!("sibling {:?}", sibling);
             if is_left_child(current_node) {
                 // path[level] = (current, sibling);
                 path.push((current, sibling));
@@ -191,7 +191,7 @@ impl MerkleTree
                 path.push((sibling, current));
             }
             current_node = parent(current_node).unwrap();
-            level_count += 1;
+            // level_count += 1;
         }
 
         path
