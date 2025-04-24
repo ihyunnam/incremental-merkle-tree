@@ -38,24 +38,9 @@ impl MerkleTree
     }
 
     pub fn insert_leaf<const N: usize>(&mut self, leaf: [Fr;N]) {
-        // The leaf node should not be empty
-        // assert!(!leaf.is_empty());
-        // increment the leaf count by 1
-        
-        
-        // if self.tree.is_empty() {
-        //     // self.tree.push(vec![PoseidonAlgorithm::leaf_hash(leaf)]);
-        //     self.tree.push(vec![PoseidonAlgorithm::hash(leaf)]);
-        //     self.leaves_count += 1;
-        // } else {
-            let leaves = self.tree.first_mut().unwrap();
-            // drop the duplicate leaf if present
-            // leaves.drain(self.leaves_count..);  // Remove all placeholder zero nodes
-            // leaves.push(T::leaf_hash(leaf));
-            // leaves.push(PoseidonAlgorithm::hash(leaf));
-            leaves[self.leaves_count] = PoseidonAlgorithm::hash(leaf);  // Instead of draining zero nodes and pushing new, replace a zero node with the new leaf.
-            self.leaves_count += 1;
-        // }
+        let leaves = self.tree.first_mut().unwrap();
+        leaves[self.leaves_count] = PoseidonAlgorithm::hash(leaf);  // Instead of draining zero nodes and pushing new, replace a zero node with the new leaf.
+        self.leaves_count += 1;
         Self::build_tree(&mut self.tree, self.leaves_count);
     }
 
@@ -190,10 +175,14 @@ impl MerkleTree
         let mut level_count = 0;
         // while !is_root(current_node) {
         for level in self.tree.split_last().unwrap().1.iter() {
+            println!("level {:?}", level_count);
             let sibling_node = sibling(current_node).unwrap();
             let empty_hash = &self.empty_hashes[level_count];
+            println!("current node {:?}", current_node);
             let current = level.get(current_node as usize).cloned().unwrap_or(*empty_hash);
+            println!("current {:?}", current);
             let sibling = level.get(sibling_node as usize).cloned().unwrap_or(*empty_hash);
+            println!("sibling {:?}", sibling);
             if is_left_child(current_node) {
                 // path[level] = (current, sibling);
                 path.push((current, sibling));
