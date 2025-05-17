@@ -12,7 +12,7 @@ pub struct MerkleTree
 {
     // hasher: H,
     pub tree: Vec<Vec<Hash>>,
-    leaves_count: usize,
+    pub leaves_count: usize,
     empty_hashes: Vec<Hash>,
 }
 
