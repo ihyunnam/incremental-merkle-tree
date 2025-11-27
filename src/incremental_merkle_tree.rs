@@ -39,7 +39,8 @@ impl MerkleTree
 
     pub fn insert_leaf<const N: usize>(&mut self, leaf: [Fr;N]) {
         let leaves = self.tree.first_mut().unwrap();
-        leaves[self.leaves_count] = PoseidonAlgorithm::hash(leaf);  // Instead of draining zero nodes and pushing new, replace a zero node with the new leaf.
+        // leaves[self.leaves_count] = PoseidonAlgorithm::hash(leaf);  // Instead of draining zero nodes and pushing new, replace a zero node with the new leaf.
+        leaves[self.leaves_count] = leaf // 11/27 change before OSDI evals because leaf in our case is already Fr(=Hash).
         self.leaves_count += 1;
         Self::build_tree(&mut self.tree, self.leaves_count);
     }
